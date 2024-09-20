@@ -5,6 +5,7 @@ package base
 
 import (
 	"context"
+	"fmt"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	"github.com/pb33f/libopenapi/orderedmap"
 	"golang.org/x/text/cases"
@@ -47,6 +48,16 @@ func (s *Schema) Walk(ctx context.Context, schema *base.Schema) {
 
 	s.Value = schema
 	s.BuildNodesAndEdges(ctx, s.Name, "schema", schema, s)
+
+	if schema.GoLow() != nil && schema.GoLow().GetRootNode() != nil {
+		nodeID := fmt.Sprintf("%v:%v",schema.GoLow().GetRootNode().Line, schema.GoLow().GetRootNode().Column)
+		if _, alreadyHandled := drCtx.SchemaCache.Load(nodeID); alreadyHandled {
+			return
+		} else {
+			drCtx.SchemaCache.Store(nodeID, true)
+		}
+	}
+
 
 	if schema.AllOf != nil {
 		var allOf []*SchemaProxy

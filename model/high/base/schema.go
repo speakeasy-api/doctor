@@ -117,6 +117,16 @@ func (s *Schema) Walk(ctx context.Context, schema *base.Schema, depth int) {
 		}
 	}
 
+	if schema.GoLow() != nil && schema.GoLow().GetRootNode() != nil {
+		nodeID := fmt.Sprintf("%v:%v",schema.GoLow().GetRootNode().Line, schema.GoLow().GetRootNode().Column)
+		if _, alreadyHandled := drCtx.SchemaCache.Load(nodeID); alreadyHandled {
+			return
+		} else {
+			drCtx.SchemaCache.Store(nodeID, true)
+		}
+	}
+
+
 	if schema.AllOf != nil {
 		var allOf []*SchemaProxy
 		for i, allOfItem := range schema.AllOf {

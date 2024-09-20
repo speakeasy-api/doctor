@@ -71,6 +71,16 @@ func (sp *SchemaProxy) Walk(ctx context.Context, schemaProxy *base.SchemaProxy) 
 	drCtx := ctx.Value("drCtx").(*DrContext)
 	sch := schemaProxy.Schema()
 	if sch != nil {
+		hasLowAndRootNode := sch.GoLow() != nil && sch.GoLow().GetRootNode() != nil
+
+		if hasLowAndRootNode {
+			nodeID := fmt.Sprintf("%v:%v",sch.GoLow().GetRootNode().Line, sch.GoLow().GetRootNode().Column)
+			if _, alreadyHandled := drCtx.SchemaCache.Load(nodeID); alreadyHandled {
+				return
+			} else {
+				drCtx.SchemaCache.Store(nodeID, true)
+			}
+		}
 
 		if schemaProxy.IsReference() {
 			if sp.IsCircular(ctx) {
